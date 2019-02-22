@@ -43,7 +43,7 @@ vector<double> x_corr(const vector<double> &corr_a, const vector<double> &corr_b
 		{
 			x_corr[i] += corr_a_temp[j] * corr_b_temp[j];
 		}
-		cout << "x_corr " << i << "is: " << x_corr[i] << endl;
+		cout << setprecision(6) << "x_corr " << i << "is: " << x_corr[i] << endl;
 
 		vector<double>::iterator s = corr_b_temp.begin();
 		corr_b_temp.insert(s, 0);
@@ -98,7 +98,7 @@ vector<double> x_corr_dft(const vector<double> &corr_a, const vector<double> &co
 
 	for (int i = 0; i < x_corr_dft.size(); i++)
 	{
-		cout << "x_corr_dft " << i << "is: " << x_corr_dft[i] << endl;
+		cout << setprecision(6) << "x_corr_dft " << i << "is: " << x_corr_dft[i] << endl;
 	}
 
 	cout << endl;

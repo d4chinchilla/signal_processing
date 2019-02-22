@@ -22,8 +22,8 @@ vector<double> c_dft_re(const vector<double> &dec_in) //compute DTF real part, p
 		{
 			re_freq_temp[k] = 0;
 		}*/
-		re_freq_temp[k] = round(re_freq_temp[k] * 1000000000000.0) / 1000000000000.0;
-		cout << "re_freq_temp " << k << "is: " << re_freq_temp[k] << endl;
+		//re_freq_temp[k] = round(re_freq_temp[k] * 1000000000000.0) / 1000000000000.0;
+		cout << setprecision(6) << "re_freq_temp " << k << "is: " << re_freq_temp[k] << endl;
 	}
 
 	cout << endl;
@@ -50,8 +50,8 @@ vector<double> c_dft_im(const vector<double> &dec_in) //compute DTF imaginary pa
 		{
 			im_freq_temp[k] = 0;
 		}*/
-		im_freq_temp[k] = round(im_freq_temp[k] * 1000000000000.0) / 1000000000000.0;
-		cout << "im_freq_temp " << k << "is: " << im_freq_temp[k] << "i" << endl;
+		//im_freq_temp[k] = round(im_freq_temp[k] * 1000000000000.0) / 1000000000000.0;
+		cout << setprecision(6) << "im_freq_temp " << k << "is: " << im_freq_temp[k] << "i" << endl;
 	}
 
 	cout << endl;
@@ -96,9 +96,9 @@ vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq
 		}
 
 		i_dft_temp[i] /= vec_size;
-		i_dft_temp[i] = round(i_dft_temp[i] * 1000000000000.0) / 1000000000000.0;
-
-		cout << "i_dft_temp " << i << " is: " << i_dft_temp[i] << endl;
+		//i_dft_temp[i] = round(i_dft_temp[i] * 1000000000000.0) / 1000000000000.0;
+		
+		cout << setprecision(6) << "i_dft_temp " << i << " is: " << i_dft_temp[i] << endl;
 	}
 	cout << endl;
 
