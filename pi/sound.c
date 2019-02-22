@@ -35,12 +35,14 @@ void sound_print(sound_s *sound, FILE *stream)
     fwrite(buf, 1, ptr - buf, stream);
 }
 
+
+
 bool sound_verify(sound_s *sound)
 {
     double speed = get_sound_speed(sound);
     double error = get_sound_error(sound);
 
-    return (error < 0.2e-3) && (speed > 300.0) && (speed < 500.0);
+    return (error < 0.2e-3) && (speed > 300.0) && (speed < 600.0);
 }
 
 bool sound_init(sound_s *sound, double dt0, double dt1, double dt2)
@@ -66,4 +68,3 @@ bool sound_match_peaks(sound_s *sound, double *dt0, int ndt0, double *dt1, int n
         }
     }
 }
-

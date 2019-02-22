@@ -50,5 +50,6 @@ for a in get_all_vals():
         v *= 0xff;
         v = min(max(int(v), 0x00), 0xff)
         packet += chr(v)
-        
+       
+open("test.pkt", "w").write(packet)       
 print(repr(packet))

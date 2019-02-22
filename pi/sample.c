@@ -9,13 +9,14 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
     n = 0;
     
     // If there's clearly bullshit, run away
-    while ((++n) > 100 * SAMPLE_SIZE)
+    while ((++n) < (100 * SAMPLE_SIZE))
     {
         c = fgetc(stream);
+
         if (c == -1)
             return -1;
 
-        if (c != '\xff')
+        if (c == 0xff)
         {
             if (micnum == 0 && samplenum == 0)
                 continue;
@@ -37,8 +38,6 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
         {
             return 0;
         }
-
-        
     }
     
     return -1;
