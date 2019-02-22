@@ -200,22 +200,22 @@ int delay_dft_func(vector<double> &find_delay, vector<double> &check_data_a, vec
 		find_delay_temp[i] = abs(find_delay_temp[i]);
 	}
 
-	double max_val = *max_element(find_delay_temp.begin(), find_delay_temp.end());
+	double max_val = *max_element(find_delay_temp.begin(), find_delay_temp.begin() + find_delay_temp.size()/2);
 
 	for (int i = 0; i < find_delay_temp.size(); i++)
 	{
 		if (max_val == find_delay_temp[i])
 		{
-			delay = i + 1;
+			delay = i;
 			break;
 		}
 	}
 
-	//number of element+1 shows delay, take absolute value, if -ve means 1st set of data lag 'n' elements of 2nd data, if +ve means 1st set of data lead 'n' elements of 2nd data
+	//number of element shows delay, take absolute value, if -ve means 1st set of data lag 'n' elements of 2nd data, if +ve means 1st set of data lead 'n' elements of 2nd data
 	//elements all 0 ==> delay = 0;
 	if (delay != 0)
 	{
-		if (find_delay[delay - 1] < 0)
+		if (find_delay[delay] < 0)
 		{
 			cout << "1st set of data lag " << delay << " samples compare to 2nd set of data" << endl;
 		}
