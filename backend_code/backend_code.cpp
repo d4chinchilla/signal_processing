@@ -6,11 +6,8 @@ using namespace std;
 
 int sample;
 
-vector<double> dec_str_1 = {34,66,91,44,67,88,45,11,90,66,82,13,56,22,55,92,34,76,22,11,65,87,34,90,18,9,51,49,75,80,31,41};
-vector<double> dec_str_2 = {20,99,16,84,23,58,33,49,65,71,91,34,66,91,44,67,88,45,11,90,66,82,13,56,22,55,92,34,76,32,77,12};
-
-//vector<double> dec_str_1 = { 334,668,912,447,679};
-//vector<double> dec_str_2 = { 334,668,912,447,679 };
+vector<double> dec_str_1 = { 225, 10, 193, 242, 130, 148, 14, 21, 149, 194, 93, 145, 99, 61, 9, 243, 189, 116, 60, 77, 130, 23, 230, 130, 150, 172, 131, 223, 230, 110, 125, 207, 244, 15, 240, 247, 45, 150, 233, 120, 85, 30, 100, 215, 193, 235, 41, 144, 133, 210 };
+vector<double> dec_str_2 = { 66, 73, 132, 26, 223, 123, 155, 176, 139, 211, 226, 115, 129, 202, 247, 5, 250, 251, 50, 153, 246, 124, 92, 36, 90, 233, 188, 230, 45, 137, 141, 219,124, 214, 75, 201, 195, 28, 107, 174, 37, 49, 65, 74, 80, 246, 29, 13, 142, 225};
 
 vector<double> dft_str_1_re;
 vector<double> dft_str_1_im;
@@ -27,12 +24,6 @@ int delay;
 
 int main()
 {
-
-	x_corr_f = x_corr_dft(dec_str_1, dec_str_2);
-	//number of element+1 shows delay, take absolute value, if -ve means 1st set of data lag 'n' elements of 2nd data, if +ve means 1st set of data lead 'n' elements of 2nd data
-	//elements all 0 ==> delay = 0;
-
-	delay = delay_dft_func(x_corr_f, dec_str_1, dec_str_2);
 
 	x_corr_s = x_corr(dec_str_1, dec_str_2);
 
@@ -68,7 +59,12 @@ int main()
 	idft_str_1 = i_dft(dft_str_1_re, dft_str_1_im);
 	idft_str_2 = i_dft(dft_str_2_re, dft_str_2_im);
 
-	
+	x_corr_f = x_corr_dft(dec_str_1, dec_str_2);
+	//number of element+1 shows delay, take absolute value, if -ve means 1st set of data lag 'n' elements of 2nd data, if +ve means 1st set of data lead 'n' elements of 2nd data
+	//elements all 0 ==> delay = 0;
+
+	delay = delay_dft_func(x_corr_f, dec_str_1, dec_str_2);
+
 	system("pause");
 	return 0;
 }

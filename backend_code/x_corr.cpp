@@ -20,26 +20,26 @@ vector<double> x_corr(const vector<double> &corr_a, const vector<double> &corr_b
 	vector<double>::iterator f = corr_a_temp.begin();
 	corr_a_temp.insert(f, vec_size, 0);
 
-	for (int i = 0; i < vec_size; i++)
+	for (int i = 0; i < vec_size +1; i++)
 	{
 		corr_a_temp.push_back(0);
 	}
 
-	for (int i = 0; i < vec_size*2; i++)
+	for (int i = 0; i < vec_size*2 +1; i++)
 	{
 		corr_b_temp.push_back(0);
 	}
 
 	vector<double> x_corr;
-	for (int i = 0; i < vec_size * 2; i++)
+	for (int i = 0; i < vec_size*2 +1; i++)
 	{
 		x_corr.push_back(0);
 	}
 
 
-	for (int i = 0; i < vec_size * 2; i++)
+	for (int i = 0; i < vec_size*2 +1; i++)
 	{
-		for (int j = 0; j < vec_size * 3; j++)
+		for (int j = 0; j < vec_size*3 +1; j++)
 		{
 			x_corr[i] += corr_a_temp[j] * corr_b_temp[j];
 		}
@@ -91,8 +91,6 @@ vector<double> x_corr_dft(const vector<double> &corr_a, const vector<double> &co
 	vector<double> x_corr_dft;
 
 	vector<double> conj_corr_b = conjugate(corr_b_temp_im);
-
-	//conj_corr_b = conjugate(conj_corr_b);
 
 	x_corr_dft = i_dft(dft_multiply_re(corr_a_temp_re, corr_b_temp_re, corr_a_temp_im, conj_corr_b), dft_multiply_im(corr_a_temp_re, corr_b_temp_re, corr_a_temp_im, conj_corr_b));
 
