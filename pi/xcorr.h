@@ -3,9 +3,6 @@
 # include <pthread.h>
 # include "sample.h"
 
-# define XCORR_NUM 
-
-
 typedef struct xcorr_job     xcorr_job_s;
 typedef struct xcorr_manager xcorr_manager_s;
 
