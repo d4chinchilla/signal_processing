@@ -81,12 +81,3 @@ static void *xcorr_manager_main(void *arg)
 
     return NULL;
 }
-
-int main(void)
-{
-    xcorr_manager_s m;
-    xcorr_manager_init(&m);
-    sleep(100);
-    xcorr_manager_kill(&m);
-    return 0;
-}
