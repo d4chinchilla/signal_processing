@@ -6,9 +6,11 @@
 # define XCORR_LEN  50
 # define NUM_MICS   4
 # define NUM_XCORR  (NUM_MICS - 1)
+# define MAX_PEAKS  4
 
 // This is big, so avoid storing it on stack memory as much as possible :)
 typedef struct packet packet_s;
+
 struct packet
 {
     int data[NUM_MICS][SAMPLE_SIZE];
