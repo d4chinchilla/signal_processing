@@ -39,11 +39,15 @@ void sound_print(sound_s *sound, FILE *stream)
     fwrite(buf, 1, ptr - buf, stream);
 }
 
-void sound_trim_file(char *fname)
+void sound_trim_file(const char *fname)
 {
+    FILE *filein;
+    FILE *fileout;
+
     const int maxsize = 4096, trimsize = 1024;
-    char line[maxsize];
+    char file[maxsize];
     struct stat status;
+    char *lastnl, *iter;
 
     if (access(fname, F_OK))
         return;
@@ -54,6 +58,22 @@ void sound_trim_file(char *fname)
     if (status.st_size <= maxsize)
         return;
     
+    filein = fopen(fname, "r");
+    fread(file, 1, maxsize, filein);
+    fclose(filein);
+    
+    fileout = fopen(fname, "w");
+    lastnl = file;
+    for (iter = file; iter < &file[trimsize]; ++iter)
+    {
+        if (*iter == '\n')
+        {
+            lastnl = iter + 1;
+            fwrite(lastnl, 1, 1 + iter - lastnl, fileout);
+        }
+    }
+    
+    fclose(fileout);
     
 }
 
