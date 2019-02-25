@@ -125,12 +125,63 @@ static void *xcorr_manager_main(void *arg)
         {
             printf("%d %d %d %d\n", pkt->data[0][ind],pkt->data[1][ind],pkt->data[2][ind], pkt->data[3][ind]);
         }
-            printf("\n\n");
+
         for (ind = 0; ind < XCORR_LEN; ++ind)
         {
-            printf("%d %d %d\n", pkt->xcorr[0][ind],pkt->xcorr[1][ind],pkt->xcorr[2][ind]);
+            printf("%d: %d %d %d\n", ind, pkt->xcorr[0][ind],pkt->xcorr[1][ind],pkt->xcorr[2][ind]);
         }
+
+        int xc;
+        for (xc = 0; xc < 3; ++xc)
+        {
+            ind = -1;
+            while ((ind = xcorr_next_peak(pkt->xcorr[xc], ind)) != -1)
+            {
+                printf("%d: %d\n", xc, ind);
+            }
+        }
+
+        sample_match_peaks(pkt);
     }
 
     return NULL;
+}
+
+#define PEAK_X_THRESHOLD 5
+
+int xcorr_next_peak(int *vals, int prev)
+{
+    int peak, off;
+    if (prev != -1)
+        peak = prev + PEAK_X_THRESHOLD;
+    else
+        peak = PEAK_X_THRESHOLD;
+
+    while (peak < XCORR_LEN - PEAK_X_THRESHOLD)
+    {
+        for (off = 0; off < PEAK_X_THRESHOLD; ++off)
+        {
+            if (vals[peak] < vals[peak + off])
+                break;
+        }
+
+        if (off == PEAK_X_THRESHOLD)
+        {
+            for (off = 0; off > -PEAK_X_THRESHOLD; --off)
+            {
+                if (vals[peak] < vals[peak + off])
+                    break;
+            }
+
+            if (off == -PEAK_X_THRESHOLD)
+                return peak;
+            else
+                peak += PEAK_X_THRESHOLD;
+        }
+        else
+        {
+            peak += off;
+        }
+    }
+    return -1;
 }

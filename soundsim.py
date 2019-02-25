@@ -3,7 +3,8 @@
 from math import *
 
 sources = {
-    (3, 3): lambda t: sin(t*2*pi*500)
+#    (3, 3):   lambda t: sin(t*2*pi*500) * e**(-(50*2*pi*t)**2) * 0.7,
+    (3, -3): lambda t: sin(t*2*pi*500) * e**(-(400*2*pi*(t+0.012))**2) * 2
 }
 
 miclocs = [(0.1, 0.1), (-0.1, 0.1), (0.1, -0.1), (-0.1, -0.1)]
@@ -43,8 +44,8 @@ def get_all_vals():
 packet = b'\xff'
 
 for a in get_all_vals():
+    print(a)
     for v in a:
-        print v
         v /= maxval / 2.0;
         v += maxval / 2.0;
         v *= 0xff;
@@ -52,4 +53,3 @@ for a in get_all_vals():
         packet += chr(v)
 
 open("test.pkt", "w").write(packet)
-print(repr(packet))

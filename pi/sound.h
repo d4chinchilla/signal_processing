@@ -85,9 +85,12 @@ void sound_print(sound_s *sound, FILE *stream);
 
 bool sound_verify(sound_s *sound);
 
-bool sound_init(sound_s *sound, double dt0, double dt1, double dt2);
+bool sound_init(sound_s *sound, double dt0, double dt1, double dt2, int v );
 
-bool sound_match_peaks(sound_s *sound, double *dt0, int ndt0, double *dt1, int ndt1, double *dt2, int ndt2);
-
+bool sound_match_peaks(
+    sound_s *sound,
+    double *dt0, int ndt0, int *v0,
+    double *dt1, int ndt1, int *v1,
+    double *dt2, int ndt2, int *v2);
 
 #endif

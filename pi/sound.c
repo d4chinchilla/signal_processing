@@ -25,8 +25,10 @@ void sound_print(sound_s *sound, FILE *stream)
 
     ptr += snprintf(ptr, end - ptr, "{\"id\": %d, ",     id++);
     ptr += snprintf(ptr, end - ptr, "\"angle\": %f, ",   sound->angle);
-    ptr += snprintf(ptr, end - ptr, "\"amplitude\": %f", sound->amplitude);
+    ptr += snprintf(ptr, end - ptr, "\"amplitude\": %f, ", sound->amplitude);
     ptr += snprintf(ptr, end - ptr, "\"freq\": null, ");
+    ptr += snprintf(ptr, end - ptr, "\"speed\": %f, ", get_sound_speed(sound));
+    ptr += snprintf(ptr, end - ptr, "\"error\": %f, ", get_sound_error(sound));
     ptr += snprintf(ptr, end - ptr, "\"time\": %ld }",   get_time_ms());
 
     if (ptr >= end)
@@ -40,27 +42,43 @@ bool sound_verify(sound_s *sound)
     double speed = get_sound_speed(sound);
     double error = get_sound_error(sound);
 
-    return (error < 0.2e-3) && (speed > 300.0) && (speed < 600.0);
+    return (error < 0.2e-3) && (speed > 300.0) && (speed < 400.0);
 }
 
-bool sound_init(sound_s *sound, double dt0, double dt1, double dt2)
+bool sound_init(sound_s *sound, double dt0, double dt1, double dt2, int v)
 {
     sound->dt[0] = dt0;
     sound->dt[1] = dt1;
     sound->dt[2] = dt2;
 
+    printf("Sound: %f %f %f\n", dt0, dt1, dt2);
     if (!sound_verify(sound))
         return false;
 
     sound->angle = get_sound_angle(sound);
+    sound->amplitude = v;
+
+    return true;
 }
 
-bool sound_match_peaks(sound_s *sound, double *dt0, int ndt0, double *dt1, int ndt1, double *dt2, int ndt2)
+bool sound_match_peaks(
+    sound_s *sound,
+    double *dt0, int ndt0, int *v0,
+    double *dt1, int ndt1, int *v1,
+    double *dt2, int ndt2, int *v2)
 {
-    while (--ndt0) while (--ndt1) while (--ndt2)
+    int i0, i1, i2;
+
+    for (i0 = 0; i0 < ndt0; ++i0)
+    for (i1 = 0; i1 < ndt1; ++i1)
+    for (i2 = 0; i2 < ndt2; ++i2)
     {
         sound_s sound;
-        if (sound_init(&sound, dt0[ndt0], dt1[ndt1], dt2[ndt2]))
+        if (sound_init(
+            &sound,
+            dt0[i0], dt1[i1], dt2[i2],
+            v0[i0] + v1[i1] + v2[i2]
+        ))
         {
             sound_print(&sound, stdout);
         }

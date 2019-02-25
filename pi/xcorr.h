@@ -25,5 +25,6 @@ struct xcorr_manager
 
 void  xcorr_manager_init(xcorr_manager_s *manager);
 void  xcorr_manager_kill(xcorr_manager_s *manager);
+int xcorr_next_peak(int *vals, int prev);
 
 #endif
