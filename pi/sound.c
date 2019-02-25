@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include "sound.h"
 
 static uint64_t get_time_ms()
@@ -35,6 +37,30 @@ void sound_print(sound_s *sound, FILE *stream)
         return;
 
     fwrite(buf, 1, ptr - buf, stream);
+}
+
+void sound_trim_file(char *fname)
+{
+    const int maxsize = 4096, trimsize = 1024;
+    char line[maxsize];
+    struct stat status;
+
+    if (access(fname, F_OK))
+        return;
+
+    if (stat(fname, &status))
+        return;
+    
+    if (status.st_size <= maxsize)
+        return;
+    
+    
+}
+
+FILE *sound_get_file(void)
+{
+    char *fname = "chinchilla-sounds";
+    
 }
 
 bool sound_verify(sound_s *sound)
@@ -77,8 +103,7 @@ bool sound_match_peaks(
         if (sound_init(
             &sound,
             dt0[i0], dt1[i1], dt2[i2],
-            v0[i0] + v1[i1] + v2[i2]
-        ))
+            v0[i0] + v1[i1] + v2[i2]))
         {
             sound_print(&sound, stdout);
         }

@@ -3,8 +3,8 @@
 from math import *
 
 sources = {
-#    (3, 3):   lambda t: sin(t*2*pi*500) * e**(-(50*2*pi*t)**2) * 0.7,
-    (3, -3): lambda t: sin(t*2*pi*500) * e**(-(400*2*pi*(t+0.012))**2) * 2
+    (0, 0):   lambda t: 0.0004 * sin(t*2*pi*10000),
+    (3, -3): lambda t: sin(t*2*pi*2000)
 }
 
 miclocs = [(0.1, 0.1), (-0.1, 0.1), (0.1, -0.1), (-0.1, -0.1)]

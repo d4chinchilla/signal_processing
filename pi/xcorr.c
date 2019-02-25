@@ -102,7 +102,7 @@ static void *xcorr_manager_main(void *arg)
     while (job->running)
     {
         int njob, ind;
-        printf("HELLO\n");
+
         if (sample_packet_recv(pkt, stdin) != 0)
         {
             usleep(100000);
@@ -123,12 +123,12 @@ static void *xcorr_manager_main(void *arg)
 
         for (ind = 0; ind < SAMPLE_SIZE; ++ind)
         {
-            printf("%d %d %d %d\n", pkt->data[0][ind],pkt->data[1][ind],pkt->data[2][ind], pkt->data[3][ind]);
+          //  printf("%d %d %d %d\n", pkt->data[0][ind],pkt->data[1][ind],pkt->data[2][ind], pkt->data[3][ind]);
         }
 
         for (ind = 0; ind < XCORR_LEN; ++ind)
         {
-            printf("%d: %d %d %d\n", ind, pkt->xcorr[0][ind],pkt->xcorr[1][ind],pkt->xcorr[2][ind]);
+         //   printf("%d: %d %d %d\n", ind, pkt->xcorr[0][ind],pkt->xcorr[1][ind],pkt->xcorr[2][ind]);
         }
 
         int xc;
@@ -147,7 +147,7 @@ static void *xcorr_manager_main(void *arg)
     return NULL;
 }
 
-#define PEAK_X_THRESHOLD 5
+#define PEAK_X_THRESHOLD 10
 
 int xcorr_next_peak(int *vals, int prev)
 {
