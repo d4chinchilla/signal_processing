@@ -32,15 +32,15 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
         }
 
         pkt->data[micnum][samplenum] = (int)c;
-        samplenum += 1;
-
-        if (samplenum == SAMPLE_SIZE)
-        {
-            samplenum = 0;
-            micnum   += 1;
-        }
+        micnum += 1;
 
         if (micnum == NUM_MICS)
+        {
+            micnum = 0;
+            samplenum   += 1;
+        }
+
+        if (samplenum == SAMPLE_SIZE)
         {
             return 0;
         }
