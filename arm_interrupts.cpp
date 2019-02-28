@@ -111,8 +111,6 @@ int main()
 
     for(;;)
     {
-        CriticalSectionLock::enable();
-
         read_samples();
 
         // In each iteration, transfers contents of recent sample into buffer
@@ -125,7 +123,6 @@ int main()
         // Detects if the buffer is full, and if so, sends it all
         if(top == BUFFER_SIZE*4)
         {
-            CriticalSectionLock::disable();
             send_serial();
         }
 
