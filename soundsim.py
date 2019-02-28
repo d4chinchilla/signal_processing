@@ -35,21 +35,22 @@ def get_mic_vals(micloc):
     return vals
 
 def get_all_vals():
+    mics = [get_mic_vals(loc) for loc in miclocs]
     vals = []
-    for loc in miclocs:
-        vals.append(get_mic_vals(loc))
+    
+    for i in range(0, samplenum):
+        for mic in range(len(miclocs)):
+            vals.append(mics[mic][i])
 
     return vals
 
 packet = b'\xff'
 
-for a in get_all_vals():
-    print(a)
-    for v in a:
-        v /= maxval / 2.0;
-        v += maxval / 2.0;
-        v *= 0xff;
-        v = min(max(int(v), 0x00), 0xff)
-        packet += chr(v)
+for v in get_all_vals():
+    v /= maxval / 2.0;
+    v += maxval / 2.0;
+    v *= 0xff;
+    v = min(max(int(v), 0x00), 0xff)
+    packet += chr(v)
 
 open("test.pkt", "w").write(packet)
