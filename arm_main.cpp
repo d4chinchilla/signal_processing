@@ -1,17 +1,17 @@
 #include "mbed.h"
 
-#define ADC0_PIN PA_0
-#define ADC1_PIN PA_1
-#define ADC2_PIN PA_3
-#define ADC3_PIN PA_4
+#define ADC0_PIN A0
+#define ADC1_PIN A1 
+#define ADC2_PIN A2  
+#define ADC3_PIN A3
 #define CS_PIN D5
 #define CLK_PIN D6
 
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 1
 #define DATA_BITS 9
 #define NUM_MICS 4
 #define CLK_DELAY 8
-#define BAUD 1500000
+#define BAUD 115200
 #define START_BYTE 0xFF
 DigitalOut cs(CS_PIN);
 DigitalOut clk(CLK_PIN);
@@ -24,39 +24,31 @@ uint16_t top = 0;
 const char start = 0x30;
 uint8_t stall=0;
 
-DigitalIn a0(D9);
-DigitalIn a1(D10);
-DigitalIn a2(D11);
-DigitalIn a3(D12);
+DigitalIn a0(ADC0_PIN);
+DigitalIn a1(ADC1_PIN);
+DigitalIn a2(ADC2_PIN);
+DigitalIn a3(ADC3_PIN);
 
 // Uses a bit-bashing method similar to SPI to read the values from all four ADCs. Then the
 // values are manipulated into the correct format to be represented by a single int variable each.
 // These can then be sent over serial.
-// wait_us(1) is the smallest possible delay. If it turns out to be too large, this can be replaced
-// with idle iterations through a for loop. This would be less exact and may need analysis on an
-// oscilloscope to find frequencies.
 void read_samples()
-{        
-    // Bit-bashing the ADCs as if SPI
-    // The data only starts on the third falling edge, so put two clocks outside the loop
+{   
+    // Pulse clock once to get ADC sample going
     cs = 0;
-    // wait_us(1);
-//         for(uint8_t d=0; d <= CLK_DELAY; d++) { __asm volatile("NOP"); }
     clk = 1;
-// // #pragma GCC push_options
-// // #pragma GCC optimze ("no-unroll-loops")
-    // for(uint8_t d=0; d <= CLK_DELAY; d++) { __asm volatile("NOP"); }
-//         // wait_us(1);
     clk = 0;
-// #pragma GCC pop_options
+
     for(uint8_t i = 0; i < DATA_BITS; i++)
     {
         clk = 1;
+
+    // Definitely very reliable delay block
 #pragma GCC push_options
 #pragma GCC optimze ("no-unroll-loops")
         for(uint8_t d=0; d <= CLK_DELAY; d++) { stall=d; __asm volatile("NOP"); }
-        // wait_us(1);
 #pragma GCC pop_options
+
         clk = 0;
 
         current_sample[0] += a0 << (DATA_BITS-(i+1));
@@ -64,9 +56,8 @@ void read_samples()
         current_sample[2] += a2 << (DATA_BITS-(i+1));
         current_sample[3] += a3 << (DATA_BITS-(i+1));
         
-        // wait_us(1);
         // Debateable need for a delay in here to maintain clock pulse - hoping
-        // the above logic is slow enough to generate a delay of about 1us anyway
+        // the above logic is slow enough to generate a delay anyway
     }
     // The MSB is a sign bit, and should always be 0. If it isn't, the bit
     // may have been corrupted and the sample should be set to 0.
@@ -81,17 +72,12 @@ void read_samples()
 
 void send_serial()
 {
-//    serial.printf("Trying to print buffer\n");
-//    serial_buffer[0] = 0x30;
-//    serial_buffer[1] = 0x34;
 //    serial.printf("Sending serial\n");
 
     // serial.putc(START_BYTE);
-    while(!serial.writeable()){}
     serial.putc(0x30);
     for(uint16_t i = 0; i < BUFFER_SIZE*NUM_MICS; i++)
     {
-//        serial.printf("serial loop\n");
         serial_buffer[i] = (uint8_t)(samples_buffer[i]);
         
         // The start byte is 0xff (255) so if the sample == 255 it must be made 254
@@ -99,10 +85,12 @@ void send_serial()
         if(serial_buffer[i] == 255)
             serial_buffer[i] = 254;
 
+        // Actually printing the value of the sample
         serial.putc(serial_buffer[i]);
     }
-//    serial.printf(&start);
-//    serial.printf(serial_buffer);
+
+    // Don't need to reset the samples buffer, as it will be overwritten. Just say the top is
+    // now the first element and new samples will be stored there
     top = 0;
 }
 
@@ -111,34 +99,36 @@ int main()
     cs = 1;
     clk = 0;
     
-    serial.baud(BAUD);    // THIS NEEDS TO BE SET THE SAME ON THE PI
-    // serial.set_blocking(true);
+    serial.baud(BAUD);
     
 //    serial.printf("Started\n");
     
+    // mbed OS scheduler thread suspected to be messing with timings. Make everything critical
+    // except serial tranmissions to ensure the sampling rate is maintained
+    CriticalSectionLock::enable();
+    
     for(;;)
     {
-//        serial.printf("Loop\n");
+        // serial.printf("Loop\n");
         read_samples();
         
+        // Adding the current sample to the buffer once it is retrieved
         for(uint8_t i = 0; i < NUM_MICS; i++)
         {
-//            serial.printf("Storing to buffer\n");
-//            serial.printf("%d\n", top);
             samples_buffer[top] = current_sample[i];
             top++;
         }
-//        top += 4;
-//        serial.printf("Checking %d = %d\n", top, (BUFFER_SIZE*4));
-        if(top == BUFFER_SIZE*4)
-            send_serial();
-            
-        // current_samples needs to be reset ready for the next iteration
-        for(uint8_t i = 0; i < NUM_MICS; i++)
-        {
-            current_sample[i] = 0;
-        }
 
+        // Checks to see if the buffer is full. If so, sends serial.
+        // Have to disable CriticalSectionLock, as serial uses interrupts which cannot work
+        // when locked (Crashes OS). Locked straight after though ;)
+        if(top == BUFFER_SIZE*4)
+        {
+            CriticalSectionLock::disable();
+            send_serial();
+            CriticalSectionLock::enable();
+        }
+    
     }
     
     return 0;    
