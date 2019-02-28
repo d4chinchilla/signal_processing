@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 static void  xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res);
 static void  xcorr_job_kill(xcorr_job_s *job);
@@ -92,6 +93,7 @@ void xcorr_manager_kill(xcorr_manager_s *job)
 static void *xcorr_manager_main(void *arg)
 {
     packet_s *pkt;
+    FILE *f;
     xcorr_manager_s *job;
     xcorr_job_s     *workers;
 
@@ -99,11 +101,15 @@ static void *xcorr_manager_main(void *arg)
     workers = job->workers;
     pkt     = job->packet;
 
+    // When this is working fully, we don't need to mkfifo!
+    mkfifo("/tmp/chinchilla-serial", 0666);
+    f = fopen("/tmp/chinchilla-serial", "r");
+
     while (job->running)
     {
         int njob, ind;
 
-        if (sample_packet_recv(pkt, stdin) != 0)
+        if (sample_packet_recv(pkt, f) != 0)
         {
             usleep(100000);
             continue;

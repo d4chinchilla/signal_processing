@@ -31,7 +31,7 @@ void sound_print(sound_s *sound, FILE *stream)
     ptr += snprintf(ptr, end - ptr, "\"freq\": null, ");
     ptr += snprintf(ptr, end - ptr, "\"speed\": %f, ", get_sound_speed(sound));
     ptr += snprintf(ptr, end - ptr, "\"error\": %f, ", get_sound_error(sound));
-    ptr += snprintf(ptr, end - ptr, "\"time\": %ld }",   get_time_ms());
+    ptr += snprintf(ptr, end - ptr, "\"time\": %ld }\n",   get_time_ms());
 
     if (ptr >= end)
         return;
@@ -39,48 +39,59 @@ void sound_print(sound_s *sound, FILE *stream)
     fwrite(buf, 1, ptr - buf, stream);
 }
 
-void sound_trim_file(const char *fname)
+
+FILE *sound_trim_file(const char *fname)
 {
     FILE *filein;
     FILE *fileout;
 
     const int maxsize = 4096, trimsize = 1024;
-    char file[maxsize];
+
+    char file[trimsize];
     struct stat status;
-    char *lastnl, *iter;
+    char *end, *iter;
 
     if (access(fname, F_OK))
-        return;
+        return NULL;
 
     if (stat(fname, &status))
-        return;
-    
+        return NULL;
+
     if (status.st_size <= maxsize)
-        return;
-    
+
+        return NULL;
+
     filein = fopen(fname, "r");
-    fread(file, 1, maxsize, filein);
+    fseek(filein, status.st_size - trimsize, SEEK_SET);
+    fread(file, 1, trimsize, filein);
     fclose(filein);
-    
-    fileout = fopen(fname, "w");
-    lastnl = file;
-    for (iter = file; iter < &file[trimsize]; ++iter)
+
+    iter = &file[0];
+    end  = &file[trimsize - 1];
+    while (iter < end)
     {
-        if (*iter == '\n')
+        if (*(++iter) == '\n')
         {
-            lastnl = iter + 1;
-            fwrite(lastnl, 1, 1 + iter - lastnl, fileout);
+            fileout = fopen(fname, "w");
+            fwrite(iter + 1, 1, iter - end, stdout);
+            fwrite(iter + 1, 1, iter - end, fileout);
+            return fileout;
         }
     }
-    
-    fclose(fileout);
-    
+
+    return NULL;
 }
 
 FILE *sound_get_file(void)
 {
+    FILE *rtn;
     char *fname = "chinchilla-sounds";
-    
+
+    rtn = sound_trim_file(fname);
+    if (!rtn)
+        return fopen(fname, "a");
+
+    return rtn;
 }
 
 bool sound_verify(sound_s *sound)
@@ -114,6 +125,9 @@ bool sound_match_peaks(
     double *dt2, int ndt2, int *v2)
 {
     int i0, i1, i2;
+    FILE *f;
+
+    f = sound_get_file();
 
     for (i0 = 0; i0 < ndt0; ++i0)
     for (i1 = 0; i1 < ndt1; ++i1)
@@ -125,7 +139,9 @@ bool sound_match_peaks(
             dt0[i0], dt1[i1], dt2[i2],
             v0[i0] + v1[i1] + v2[i2]))
         {
-            sound_print(&sound, stdout);
+            sound_print(&sound, f);
         }
     }
+
+    fclose(f);
 }
