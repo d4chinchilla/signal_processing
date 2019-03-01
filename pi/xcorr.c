@@ -149,6 +149,8 @@ static void *xcorr_manager_main(void *arg)
 
         sample_match_peaks(pkt);
     }
+    
+    fclose(f);
 
     return NULL;
 }

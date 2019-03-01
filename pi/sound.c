@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/select.h>
 #include "sound.h"
 
 static uint64_t get_time_ms()
@@ -108,7 +111,6 @@ bool sound_init(sound_s *sound, double dt0, double dt1, double dt2, int v)
     sound->dt[1] = dt1;
     sound->dt[2] = dt2;
 
-    printf("Sound: %f %f %f\n", dt0, dt1, dt2);
     if (!sound_verify(sound))
         return false;
 

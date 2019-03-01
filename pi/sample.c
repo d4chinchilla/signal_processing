@@ -1,5 +1,25 @@
 #include "sample.h"
 #include "sound.h"
+#include <string.h>
+#include <errno.h>
+
+int wait_for_file(FILE *stream)
+{
+    int fn;
+    struct timeval tout = { .tv_sec = 0, .tv_usec = 100000 };
+    fd_set waitfor;
+    fn = fileno(stream);
+
+    FD_ZERO(&waitfor);
+    FD_SET(fn, &waitfor);
+    
+    if (select(fn + 1, &waitfor, NULL, NULL, &tout) == 1)
+    {
+        return 1;
+    }
+    
+    return 0;
+}
 
 int sample_packet_recv(packet_s *pkt, FILE *stream)
 {
@@ -12,11 +32,18 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
     // If there's clearly bullshit, run away
     while ((++n) < (100 * SAMPLE_SIZE))
     {
+        // This is an experimental optimization, kill it if you want <3 - francis
+        if (!wait_for_file(stream))
+        {
+            puts("Timed out waiting for input");
+            return -1;
+        }
+        
         c = fgetc(stream);
 
         if (c == -1)
         {
-            printf("Error reading\n");
+            printf("Error reading: %s\n", strerror(errno));
             return -1;
         }
 
