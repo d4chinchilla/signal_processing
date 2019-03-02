@@ -200,7 +200,7 @@ int delay_dft_func(vector<double> &find_delay, vector<double> &check_data_a, vec
 		find_delay_temp[i] = abs(find_delay_temp[i]);
 	}
 
-	double max_val = *max_element(find_delay_temp.begin(), find_delay_temp.begin() + find_delay_temp.size()/2);
+	double max_val = *max_element(find_delay_temp.begin(), find_delay_temp.begin() + (find_delay_temp.size()/2)-1);
 
 	for (int i = 0; i < find_delay_temp.size(); i++)
 	{

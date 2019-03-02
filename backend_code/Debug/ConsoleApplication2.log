@@ -1,10 +1,2 @@
-﻿  x_corr.cpp
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(97): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(116): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(121): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(138): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(143): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(155): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(198): warning C4018: '<': signed/unsigned mismatch
-c:\users\lam\desktop\d4\consoleapplication2\consoleapplication2\x_corr.cpp(205): warning C4018: '<': signed/unsigned mismatch
+﻿  backend_code.cpp
   ConsoleApplication2.vcxproj -> C:\Users\lam\Desktop\D4\ConsoleApplication2\Debug\ConsoleApplication2.exe
