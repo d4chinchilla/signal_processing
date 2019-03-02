@@ -7,11 +7,11 @@
 #define CS_PIN D5
 #define CLK_PIN D6
 
-#define BUFFER_SIZE 1
+#define BUFFER_SIZE 1024
 #define DATA_BITS 9
 #define NUM_MICS 4
 #define CLK_DELAY 8
-#define BAUD 115200
+#define BAUD 460800
 #define START_BYTE 0xFF
 DigitalOut cs(CS_PIN);
 DigitalOut clk(CLK_PIN);
@@ -21,7 +21,6 @@ char serial_buffer[NUM_MICS*BUFFER_SIZE];
 uint16_t current_sample[NUM_MICS];
 uint16_t samples_buffer[BUFFER_SIZE*NUM_MICS];
 uint16_t top = 0;
-const char start = 0x30;
 uint8_t stall=0;
 
 DigitalIn a0(ADC0_PIN);
@@ -74,8 +73,8 @@ void send_serial()
 {
 //    serial.printf("Sending serial\n");
 
-    // serial.putc(START_BYTE);
-    serial.putc(0x30);
+    serial.putc(START_BYTE);
+    // serial.putc(0x30);
     for(uint16_t i = 0; i < BUFFER_SIZE*NUM_MICS; i++)
     {
         serial_buffer[i] = (uint8_t)(samples_buffer[i]);
@@ -87,6 +86,7 @@ void send_serial()
 
         // Actually printing the value of the sample
         serial.putc(serial_buffer[i]);
+        // serial.putc(0x40);
     }
 
     // Don't need to reset the samples buffer, as it will be overwritten. Just say the top is
