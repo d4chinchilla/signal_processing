@@ -1,3 +1,4 @@
+#include <sys/stat.h>
 #include "sample.h"
 #include "xcorr.h"
 #include "errno.h"
@@ -10,29 +11,31 @@ void read_ctl(FILE *f)
 
 FILE *ctl_file(void)
 {
+    FILE *f;
+
     if (mkfifo("/tmp/chinchilla-backend-ctl", 0666) == -1)
     {
         if (errno != EEXIST)
             printf("Error, cannot make backend-ctl fifo: %s\n", strerror(errno));
     }
-    
+
     f = fopen("/tmp/chinchilla-backend-ctl", "r");
-    
+
     return f;
 }
 
 void clean_files(void)
 {
-    fopen("/tmp/chinchill
+//    fopen("/tmp/chinchill
 }
 
 void main(void)
-{	
+{
     int running;
     FILE *ctlf;
     xcorr_manager_s manager;
     xcorr_manager_init(&manager);
-    
+
     running = 1;
     ctlf    = ctl_file();
     while (running)
@@ -41,27 +44,33 @@ void main(void)
         char *chr, *end;
         chr = &line[0];
         end = &line[sizeof(line) - 1];
-        
+        memset(line, 0, sizeof(line));
+
         while (chr < end)
         {
             int cint;
             cint = fgetc(ctlf);
-            if (cint == -1) break;
-            
+            if (cint == -1)
+            {
+                usleep(100000);
+                break;
+            }
+
             *(chr++) = (unsigned char)cint;
         }
 
         if (memcmp("stop", line, 4) == 0)
             running = 0;
-        
+
         if (memcmp("calibrate", line, 4) == 0)
         {
+            manager.calibrating = 1;
             printf("CALIBRATING\n");
             sleep(5);
             printf("DONE\n");
+            manager.calibrating = 0;
         }
-        
-        
+
     }
     fclose(ctlf);
 

@@ -2,6 +2,7 @@
 #include "sound.h"
 #include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 int wait_for_file(FILE *stream)
 {
@@ -38,10 +39,15 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
             puts("Timed out waiting for input");
             return -1;
         }
-        
+
         c = fgetc(stream);
 
-        if (c == -1)
+        if (feof(stream))
+        {
+            clearerr(stream);
+            return -1;
+        }
+        else if (c == EOF)
         {
             printf("Error reading: %s\n", strerror(errno));
             return -1;
@@ -69,6 +75,7 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
 
         if (samplenum == SAMPLE_SIZE)
         {
+            puts("Got sample");
             return 0;
         }
     }

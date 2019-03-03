@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
+import sys
 from math import *
 
 sources = {
-    (0, 0):   lambda t: 0.0004 * sin(t*2*pi*10000),
-    (3, -3): lambda t: sin(t*2*pi*2000)
+    (float(sys.argv[1]), float(sys.argv[2])): lambda t: sin(t*2*pi*500) ,
+#    (0,  0): lambda t: sin(t*2*pi*1000) * 0.0003
 }
 
 miclocs = [(0.1, 0.1), (-0.1, 0.1), (0.1, -0.1), (-0.1, -0.1)]
@@ -50,7 +51,7 @@ for v in get_all_vals():
     v /= maxval / 2.0;
     v += maxval / 2.0;
     v *= 0xff;
-    v = min(max(int(v), 0x00), 0xff)
+    v = min(max(int(v), 0x00), 0xfe)
     packet += chr(v)
 
 open("test.pkt", "w").write(packet)

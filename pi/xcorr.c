@@ -58,7 +58,7 @@ static void xcorr(int *a, int *b, int *res)
         sum    = 0;
         offset = offind - (XCORR_LEN / 2);
 
-        for (ind = offset; ind < SAMPLE_SIZE - XCORR_LEN + offset; ++ind)
+        for (ind = (XCORR_LEN / 2) - offset; ind < SAMPLE_SIZE - (XCORR_LEN / 2) - offset; ++ind)
         {
             sum += a[ind] * b[ind + offset];
         }
@@ -102,6 +102,7 @@ static void *xcorr_manager_main(void *arg)
     workers = job->workers;
     pkt     = job->packet;
     job->calibratingstarted = 0;
+    job->calibrating        = 0;
 
     memset(job->calib, 0, sizeof(job->calib));
     job->ncalib = 1;
@@ -189,7 +190,9 @@ static void *xcorr_manager_main(void *arg)
                 for (ind = 0; ind < XCORR_LEN; ++ind)
                 {
                     pkt->xcorr[xc][ind] -= job->calib[xc][ind];
+                    printf("%d ", pkt->xcorr[xc][ind]);
                 }
+                puts("");
             }
             sample_match_peaks(pkt);
         }
@@ -202,9 +205,8 @@ static void *xcorr_manager_main(void *arg)
                 printf("%d: %d\n", xc, ind);
             }
         }
-
     }
-    
+
     fclose(f);
 
     return NULL;

@@ -4,7 +4,7 @@
 # include "sample.h"
 
 #define PEAK_X_THRESHOLD 10
-#define PEAK_Y_THRESHOLD (127 * 127 * SAMPLE_SIZE)
+#define PEAK_Y_THRESHOLD 0
 
 typedef struct xcorr_job     xcorr_job_s;
 typedef struct xcorr_manager xcorr_manager_s;
