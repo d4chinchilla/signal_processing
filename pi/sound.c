@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/select.h>
 #include "sound.h"
 
 static uint64_t get_time_ms()
@@ -39,34 +42,33 @@ void sound_print(sound_s *sound, FILE *stream)
     fwrite(buf, 1, ptr - buf, stream);
 }
 
+
 FILE *sound_trim_file(const char *fname)
 {
     FILE *filein;
     FILE *fileout;
 
     const int maxsize = 4096, trimsize = 1024;
+
     char file[trimsize];
     struct stat status;
     char *end, *iter;
 
-    puts("ACCESS");
     if (access(fname, F_OK))
         return NULL;
 
-    puts("STAT");
     if (stat(fname, &status))
         return NULL;
 
-    puts("SIZE");
-    printf("%d\n", status.st_size);
     if (status.st_size <= maxsize)
+
         return NULL;
 
     filein = fopen(fname, "r");
     fseek(filein, status.st_size - trimsize, SEEK_SET);
     fread(file, 1, trimsize, filein);
     fclose(filein);
-    puts("TRIMTIME");
+
     iter = &file[0];
     end  = &file[trimsize - 1];
     while (iter < end)
@@ -109,7 +111,6 @@ bool sound_init(sound_s *sound, double dt0, double dt1, double dt2, int v)
     sound->dt[1] = dt1;
     sound->dt[2] = dt2;
 
-    printf("Sound: %f %f %f\n", dt0, dt1, dt2);
     if (!sound_verify(sound))
         return false;
 

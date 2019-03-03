@@ -204,6 +204,8 @@ static void *xcorr_manager_main(void *arg)
         }
 
     }
+    
+    fclose(f);
 
     return NULL;
 }
