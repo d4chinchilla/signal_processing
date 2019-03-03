@@ -1,5 +1,6 @@
 #if !defined(SOUND_H)
 # define SOUND_H
+# include "conf.h"
 # include "sample.h"
 # include "xcorr.h"
 # include <math.h>

@@ -1,7 +1,7 @@
 FILES=sample sound xcorr main
 CPP=
 
-HDRS=$(addsuffix .h, $(FILES))
+HDRS=$(addsuffix .h, $(FILES)) conf.h
 SRCS=$(addsuffix .c, $(FILES))
 OBJS=$(addprefix obj/, $(addsuffix .o, $(FILES)))
 

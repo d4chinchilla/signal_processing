@@ -20,11 +20,7 @@ vector<double> c_dft_re(const vector<double> &dec_in) //compute DTF real part, p
 		{
 			re_freq_temp[i] += dec_in[j] * cos( (DFT_ANG_FREQ_STEP*(1+i)*j/DFT_SAMPLE_RATE));
 		}
-
-		cout << setprecision(6) << "re_freq_temp " << i << "is: " << re_freq_temp[i] << endl;
 	}
-
-	cout << endl;
 
 	return re_freq_temp;
 }
@@ -44,11 +40,7 @@ vector<double> c_dft_im(const vector<double> &dec_in) //compute DTF imaginary pa
 		{
 			im_freq_temp[i] += -dec_in[j] * sin( (DFT_ANG_FREQ_STEP*(1+i)*j/DFT_SAMPLE_RATE));
 		}
-
-		cout << setprecision(6) << "im_freq_temp " << i << "is: " << im_freq_temp[i] << "j" << endl;
 	}
-
-	cout << endl;
 
 	return im_freq_temp;
 }

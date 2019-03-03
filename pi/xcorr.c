@@ -17,9 +17,7 @@ static void *xcorr_manager_main(void *arg);
 
 static void xcorr_job_wait(xcorr_job_s *job)
 {
-    printf("XCORR WAITING %p\n", job);
     pthread_cond_wait(&(job->done), &(job->done_mtx));
-    printf("XCORR WAITED %p\n", job);
 }
 
 static void xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res)
@@ -112,9 +110,7 @@ static void *xcorr_job_main(void *arg)
         if (!job->running)
             break;
 
-        printf("XCORR STARTING %p\n", job);
         xcorr(job->a, job->b, job->res);
-        printf("XCORR DONE %p\n", job);
 
         pthread_mutex_lock(&(job->done_mtx));
         pthread_cond_signal(&(job->done));
@@ -139,20 +135,30 @@ void xcorr_manager_kill(xcorr_manager_s *job)
     pthread_join(job->thread, NULL);
 }
 
-void dft_to_file(int *in, FILE *stream)
+void dft_to_file(int *in)
 {
+    int i;
+    FILE *stream;
+
+    stream = fopen(CONF_FFT, "w");
+
     double reals[DFT_OUT_LEN];
     double imags[DFT_OUT_LEN];
-    int i;
+
     dft_wrap(in, reals, imags);
+    fprintf(stream, "{\"fft\": {\n");
+
     for (i = 0; i < DFT_OUT_LEN; ++i)
     {
-        if (i) fprintf(stream, ", ");
-        fprintf(stream, "%.2f: %.2f",
+        if (i) fprintf(stream, ",\n");
+        fprintf(stream, "    %.2f: %.2f",
             (i + 1) * (DFT_MAX_FREQ/DFT_OUT_LEN),
             sqrt(reals[i] * reals[i] + imags[i] * imags[i])
         );
     }
+
+    fprintf(stream, "\n}}\n");
+    fclose(stream);
 }
 
 static void *xcorr_manager_main(void *arg)
@@ -194,9 +200,12 @@ static void *xcorr_manager_main(void *arg)
 
         for (ind = 0; ind < NUM_MICS; ++ind)
             xcorr_norm(pkt->data[ind]);
+
         for (njob = 0; njob < NUM_XCORR; ++njob)
             xcorr_job_launch(&(workers[njob]));
-        dft_to_file(pkt->data[0], NULL);
+
+        dft_to_file(pkt->data[0]);
+
         for (njob = 0; njob < NUM_XCORR; ++njob)
             xcorr_job_wait(&(workers[njob]));
 
@@ -257,20 +266,9 @@ static void *xcorr_manager_main(void *arg)
                 for (ind = 0; ind < XCORR_LEN; ++ind)
                 {
                     pkt->xcorr[xc][ind] -= job->calib[xc][ind];
-                    printf("%d ", pkt->xcorr[xc][ind]);
                 }
-                puts("");
             }
             sample_match_peaks(pkt);
-        }
-        int xc;
-        for (xc = 0; xc < 3; ++xc)
-        {
-            ind = -1;
-            while ((ind = xcorr_next_peak(pkt->xcorr[xc], ind)) != -1)
-            {
-                printf("%d: %d\n", xc, ind);
-            }
         }
     }
 

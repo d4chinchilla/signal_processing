@@ -2,6 +2,7 @@
 # define XCORR_H
 # include <pthread.h>
 # include "sample.h"
+# include "conf.h"
 
 #define PEAK_X_THRESHOLD 10
 #define PEAK_Y_THRESHOLD 0

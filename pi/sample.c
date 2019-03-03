@@ -75,7 +75,6 @@ int sample_packet_recv(packet_s *pkt, FILE *stream)
 
         if (samplenum == SAMPLE_SIZE)
         {
-            puts("Got sample");
             return 0;
         }
     }

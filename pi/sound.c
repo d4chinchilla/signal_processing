@@ -65,7 +65,7 @@ FILE *sound_trim_file(const char *fname)
         return NULL;
 
     filein = fopen(fname, "r");
-    fseek(filein, status.st_size - trimsize, SEEK_SET);
+    fseek(filein, status.st_size - trimsize -1, SEEK_SET);
     fread(file, 1, trimsize, filein);
     fclose(filein);
 
@@ -76,7 +76,6 @@ FILE *sound_trim_file(const char *fname)
         if (*(++iter) == '\n')
         {
             fileout = fopen(fname, "w");
-            fwrite(iter + 1, 1, iter - end, stdout);
             fwrite(iter + 1, 1, iter - end, fileout);
             return fileout;
         }
@@ -88,11 +87,10 @@ FILE *sound_trim_file(const char *fname)
 FILE *sound_get_file(void)
 {
     FILE *rtn;
-    char *fname = "/tmp/chinchilla-sounds";
 
-    rtn = sound_trim_file(fname);
+    rtn = sound_trim_file(CONF_SOUND);
     if (!rtn)
-        return fopen(fname, "a");
+        return fopen(CONF_SOUND, "a");
 
     return rtn;
 }
