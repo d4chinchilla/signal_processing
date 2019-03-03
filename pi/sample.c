@@ -13,12 +13,12 @@ int wait_for_file(FILE *stream)
 
     FD_ZERO(&waitfor);
     FD_SET(fn, &waitfor);
-    
+
     if (select(fn + 1, &waitfor, NULL, NULL, &tout) == 1)
     {
         return 1;
     }
-    
+
     return 0;
 }
 

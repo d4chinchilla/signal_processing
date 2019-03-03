@@ -9,21 +9,34 @@
 static void  xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res);
 static void  xcorr_job_kill(xcorr_job_s *job);
 static void *xcorr_job_main(void *arg);
+static void xcorr_job_wait(xcorr_job_s *job);
 
 static void *xcorr_manager_main(void *arg);
+
+static void xcorr_job_wait(xcorr_job_s *job)
+{
+    printf("XCORR WAITING %p\n", job);
+    pthread_cond_wait(&(job->done), &(job->done_mtx));
+    printf("XCORR WAITED %p\n", job);
+}
 
 static void xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res)
 {
     job->a   = a;
     job->b   = b;
     job->res = res;
+    job->running = 1;
+
+    pthread_mutex_init(&(job->launch_mtx), NULL);
+    pthread_cond_init(&(job->launch), NULL);
+    pthread_mutex_init(&(job->done_mtx), NULL);
+    pthread_cond_init(&(job->done), NULL);
+
+    pthread_mutex_lock(&(job->done_mtx));
 
     pthread_create(&(job->thread), NULL, xcorr_job_main, job);
-}
 
-static void xcorr_job_kill(xcorr_job_s *job)
-{
-    pthread_join(job->thread, NULL);
+    xcorr_job_wait(job);
 }
 
 #define MAX(a, b) ((a > b) ? a : b)
@@ -66,13 +79,46 @@ static void xcorr(int *a, int *b, int *res)
     }
 }
 
+static void xcorr_job_launch(xcorr_job_s *job)
+{
+    pthread_mutex_lock(&(job->launch_mtx));
+    pthread_cond_signal(&(job->launch));
+    pthread_mutex_unlock(&(job->launch_mtx));
+}
+
+static void xcorr_job_kill(xcorr_job_s *job)
+{
+    job->running = 0;
+    xcorr_job_launch(job);
+    pthread_join(job->thread, NULL);
+}
+
 static void *xcorr_job_main(void *arg)
 {
     xcorr_job_s *job;
-
     job = arg;
-    xcorr(job->a, job->b, job->res);
 
+    pthread_mutex_lock(&(job->launch_mtx));
+    pthread_mutex_lock(&(job->done_mtx));
+    pthread_cond_signal(&(job->done));
+    pthread_mutex_unlock(&(job->done_mtx));
+
+    while (job->running)
+    {
+        pthread_cond_wait(&(job->launch), &(job->launch_mtx));
+
+        if (!job->running)
+            break;
+
+        printf("XCORR STARTING %p\n", job);
+        xcorr(job->a, job->b, job->res);
+        printf("XCORR DONE %p\n", job);
+
+        pthread_mutex_lock(&(job->done_mtx));
+        pthread_cond_signal(&(job->done));
+        pthread_mutex_unlock(&(job->done_mtx));
+    }
+    puts("DONE");
     return NULL;
 }
 
@@ -97,6 +143,7 @@ static void *xcorr_manager_main(void *arg)
     FILE *f;
     xcorr_manager_s *job;
     xcorr_job_s     *workers;
+    int              njob;
 
     job     = arg;
     workers = job->workers;
@@ -111,9 +158,15 @@ static void *xcorr_manager_main(void *arg)
     mkfifo("/tmp/chinchilla-serial", 0666);
     f = fopen("/tmp/chinchilla-serial", "r");
 
+    for (njob = 0; njob < NUM_XCORR; ++njob)
+        xcorr_job_init(
+            &(workers[njob]),
+            pkt->data[0], pkt->data[1 + njob], pkt->xcorr[njob]
+        );
+
     while (job->running)
     {
-        int njob, ind;
+        int ind;
 
         if (sample_packet_recv(pkt, f) != 0)
         {
@@ -123,15 +176,10 @@ static void *xcorr_manager_main(void *arg)
 
         for (ind = 0; ind < NUM_MICS; ++ind)
             xcorr_norm(pkt->data[ind]);
-
         for (njob = 0; njob < NUM_XCORR; ++njob)
-            xcorr_job_init(
-                &(workers[njob]),
-                pkt->data[0], pkt->data[1 + njob], pkt->xcorr[njob]
-            );
-
+            xcorr_job_launch(&(workers[njob]));
         for (njob = 0; njob < NUM_XCORR; ++njob)
-            xcorr_job_kill(&(workers[njob]));
+            xcorr_job_wait(&(workers[njob]));
 
         // This is the case where calibrating has just been started.
         if (job->calibrating && !job->calibratingstarted)
@@ -206,6 +254,9 @@ static void *xcorr_manager_main(void *arg)
             }
         }
     }
+
+    for (njob = 0; njob < NUM_XCORR; ++njob)
+        xcorr_job_kill(&(workers[njob]));
 
     fclose(f);
 

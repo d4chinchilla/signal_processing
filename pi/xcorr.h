@@ -13,6 +13,12 @@ struct xcorr_job
 {
     pthread_t thread;
 
+    int running;
+    pthread_cond_t  launch;
+    pthread_mutex_t launch_mtx;
+    pthread_cond_t  done;
+    pthread_mutex_t done_mtx;
+
     int *a, *b;
     int *res;
 };
