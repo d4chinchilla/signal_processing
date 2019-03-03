@@ -1,10 +1,12 @@
 #include <string.h>
+#include "fft/wrap.h"
 #include "xcorr.h"
 #include "sample.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <math.h>
 
 static void  xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res);
 static void  xcorr_job_kill(xcorr_job_s *job);
@@ -137,6 +139,22 @@ void xcorr_manager_kill(xcorr_manager_s *job)
     pthread_join(job->thread, NULL);
 }
 
+void dft_to_file(int *in, FILE *stream)
+{
+    double reals[DFT_OUT_LEN];
+    double imags[DFT_OUT_LEN];
+    int i;
+    dft_wrap(in, reals, imags);
+    for (i = 0; i < DFT_OUT_LEN; ++i)
+    {
+        if (i) fprintf(stream, ", ");
+        fprintf(stream, "%.2f: %.2f",
+            (i + 1) * (DFT_MAX_FREQ/DFT_OUT_LEN),
+            sqrt(reals[i] * reals[i] + imags[i] * imags[i])
+        );
+    }
+}
+
 static void *xcorr_manager_main(void *arg)
 {
     packet_s *pkt;
@@ -178,6 +196,7 @@ static void *xcorr_manager_main(void *arg)
             xcorr_norm(pkt->data[ind]);
         for (njob = 0; njob < NUM_XCORR; ++njob)
             xcorr_job_launch(&(workers[njob]));
+        dft_to_file(pkt->data[0], NULL);
         for (njob = 0; njob < NUM_XCORR; ++njob)
             xcorr_job_wait(&(workers[njob]));
 

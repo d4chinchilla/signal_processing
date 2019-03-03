@@ -1,4 +1,5 @@
-FILES=sample sound xcorr
+FILES=sample sound xcorr main
+CPP=
 
 HDRS=$(addsuffix .h, $(FILES))
 SRCS=$(addsuffix .c, $(FILES))
@@ -8,7 +9,15 @@ obj/%.o: %.c $(HDRS)
 	mkdir -p $(@D)
 	gcc -g -c -lm -pthread $< -o $@
 
-backend: $(OBJS) main.c
-	gcc -g -lm -pthread $^ -o $@
+fft/obj/%.o: fft/%.cpp fft/DFT.h
+	mkdir -p $(@D)
+	g++ -g -c $< -o $@
+
+obj/fft.a: fft/obj/DFT.o fft/obj/wrap.o
+	mkdir -p $(@D)
+	ar rvs $@ $^
+
+backend: $(OBJS) obj/fft.a
+	g++ -g -lm -pthread $^ -o $@
 
 .DEFAULT_GOAL=backend

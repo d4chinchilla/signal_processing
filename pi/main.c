@@ -6,11 +6,6 @@
 #include "errno.h"
 #include "string.h"
 
-void read_ctl(FILE *f)
-{
-    char line[64];
-}
-
 FILE *ctl_file(void)
 {
     FILE *f;
