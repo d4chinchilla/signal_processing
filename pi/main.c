@@ -1,3 +1,5 @@
+#include <unistd.h>
+#include <stdio.h>
 #include <sys/stat.h>
 #include "sample.h"
 #include "xcorr.h"
@@ -26,6 +28,11 @@ FILE *ctl_file(void)
 
 void clean_files(void)
 {
+    FILE *f;
+    unlink("/tmp/chinchilla-backend-ctl");
+    f = fopen("/tmp/chinchilla-sounds", "w");
+    fwrite("", 1, 0, f);
+
 //    fopen("/tmp/chinchill
 }
 
@@ -75,4 +82,5 @@ void main(void)
     fclose(ctlf);
 
     xcorr_manager_kill(&manager);
+    clean_files();
 }
