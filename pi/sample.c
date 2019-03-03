@@ -7,7 +7,7 @@
 int wait_for_file(FILE *stream)
 {
     int fn;
-    struct timeval tout = { .tv_sec = 0, .tv_usec = 100000 };
+    struct timeval tout = { .tv_sec = 0, .tv_usec = 1000000 };
     fd_set waitfor;
     fn = fileno(stream);
 

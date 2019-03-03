@@ -88,7 +88,7 @@ FILE *sound_trim_file(const char *fname)
 FILE *sound_get_file(void)
 {
     FILE *rtn;
-    char *fname = "chinchilla-sounds";
+    char *fname = "/tmp/chinchilla-sounds";
 
     rtn = sound_trim_file(fname);
     if (!rtn)
