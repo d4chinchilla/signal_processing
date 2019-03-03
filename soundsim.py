@@ -4,7 +4,7 @@ import sys
 from math import *
 
 sources = {
-    (float(sys.argv[1]), float(sys.argv[2])): lambda t: sin(t*2*pi*500) ,
+    (3, 3): lambda t: sin(t*2*pi*500) ,
 #    (0,  0): lambda t: sin(t*2*pi*1000) * 0.0003
 }
 
