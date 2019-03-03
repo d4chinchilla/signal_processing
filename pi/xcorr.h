@@ -3,6 +3,9 @@
 # include <pthread.h>
 # include "sample.h"
 
+#define PEAK_X_THRESHOLD 10
+#define PEAK_Y_THRESHOLD (127 * 127 * SAMPLE_SIZE)
+
 typedef struct xcorr_job     xcorr_job_s;
 typedef struct xcorr_manager xcorr_manager_s;
 
@@ -18,7 +21,11 @@ struct xcorr_manager
 {
     int running;
     pthread_t thread;
+    int calibrating;
+    int calibratingstarted;
 
+    int calib[NUM_XCORR][XCORR_LEN];
+    int ncalib;
     xcorr_job_s workers[NUM_XCORR];
     packet_s *packet;
 };

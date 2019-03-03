@@ -1,3 +1,4 @@
+#include <string.h>
 #include "xcorr.h"
 #include "sample.h"
 #include <stdlib.h>
@@ -57,7 +58,7 @@ static void xcorr(int *a, int *b, int *res)
         sum    = 0;
         offset = offind - (XCORR_LEN / 2);
 
-        for (ind = MAX(0, -offset); ind < MIN(SAMPLE_SIZE, SAMPLE_SIZE - offset); ++ind)
+        for (ind = offset; ind < SAMPLE_SIZE - XCORR_LEN + offset; ++ind)
         {
             sum += a[ind] * b[ind + offset];
         }
@@ -100,6 +101,10 @@ static void *xcorr_manager_main(void *arg)
     job     = arg;
     workers = job->workers;
     pkt     = job->packet;
+    job->calibratingstarted = 0;
+
+    memset(job->calib, 0, sizeof(job->calib));
+    job->ncalib = 1;
 
     // When this is working fully, we don't need to mkfifo!
     mkfifo("/tmp/chinchilla-serial", 0666);
@@ -127,16 +132,67 @@ static void *xcorr_manager_main(void *arg)
         for (njob = 0; njob < NUM_XCORR; ++njob)
             xcorr_job_kill(&(workers[njob]));
 
-        for (ind = 0; ind < SAMPLE_SIZE; ++ind)
+        // This is the case where calibrating has just been started.
+        if (job->calibrating && !job->calibratingstarted)
         {
-          //  printf("%d %d %d %d\n", pkt->data[0][ind],pkt->data[1][ind],pkt->data[2][ind], pkt->data[3][ind]);
+            puts("Starting calibration");
+            job->calibratingstarted = 1;
+            memset(job->calib, 0, sizeof(job->calib));
+            // This the ongoing case is run
         }
 
-        for (ind = 0; ind < XCORR_LEN; ++ind)
+        // This is the case where calibrating is ongoing
+        if (job->calibrating && job->calibratingstarted)
         {
-         //   printf("%d: %d %d %d\n", ind, pkt->xcorr[0][ind],pkt->xcorr[1][ind],pkt->xcorr[2][ind]);
+            int xc;
+            for (xc = 0; xc < NUM_XCORR; ++xc)
+            {
+                int ind;
+                for (ind = 0; ind < XCORR_LEN; ++ind)
+                {
+                    job->calib[xc][ind] += pkt->xcorr[xc][ind];
+                }
+            }
+            job->ncalib += 1;
+        }
+        // This is the case where calibrating has just stopped
+        else if (!job->calibrating && job->calibratingstarted)
+        {
+            if (job->ncalib)
+            {
+                puts("Ending calibration");
+                int xc;
+                for (xc = 0; xc < NUM_XCORR; ++xc)
+                {
+                    int ind;
+                    for (ind = 0; ind < XCORR_LEN; ++ind)
+                    {
+                        job->calib[xc][ind] /= job->ncalib;
+                    }
+                }
+            }
+            else
+            {
+                puts("Empty calibration :( I was told to calibrate but got no data");
+            }
+            job->calibratingstarted = 0;
+            // Then the normal case is run
         }
 
+        // This is the normal case
+        if (!job->calibrating)
+        {
+            int xc;
+            for (xc = 0; xc < NUM_XCORR; ++xc)
+            {
+                int ind;
+                for (ind = 0; ind < XCORR_LEN; ++ind)
+                {
+                    pkt->xcorr[xc][ind] -= job->calib[xc][ind];
+                }
+            }
+            sample_match_peaks(pkt);
+        }
         int xc;
         for (xc = 0; xc < 3; ++xc)
         {
@@ -147,13 +203,10 @@ static void *xcorr_manager_main(void *arg)
             }
         }
 
-        sample_match_peaks(pkt);
     }
 
     return NULL;
 }
-
-#define PEAK_X_THRESHOLD 10
 
 int xcorr_next_peak(int *vals, int prev)
 {
@@ -165,21 +218,27 @@ int xcorr_next_peak(int *vals, int prev)
 
     while (peak < XCORR_LEN - PEAK_X_THRESHOLD)
     {
+        // Iterate forward and see if the current peak is
+        //  a maximum forwards
         for (off = 0; off < PEAK_X_THRESHOLD; ++off)
         {
             if (vals[peak] < vals[peak + off])
                 break;
         }
 
+        // If there is no larger peak forwards
         if (off == PEAK_X_THRESHOLD)
         {
+            // Iterate backwards and see if the peak is the maximum
+            //  looking backwards
             for (off = 0; off > -PEAK_X_THRESHOLD; --off)
             {
                 if (vals[peak] < vals[peak + off])
                     break;
             }
 
-            if (off == -PEAK_X_THRESHOLD)
+            // If it is, and it is over the Y threshold, it is a peak
+            if (off == -PEAK_X_THRESHOLD && vals[peak] > PEAK_Y_THRESHOLD)
                 return peak;
             else
                 peak += PEAK_X_THRESHOLD;
