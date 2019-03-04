@@ -38,6 +38,7 @@ void main(void)
     xcorr_manager_s manager;
     xcorr_manager_init(&manager);
 
+//    system("stty -F " CONF_INPUT " 406:0:18b4:8a30:3:1c:7f:15:4:2:64:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0");
     running = 1;
     ctlf    = ctl_file();
     while (running)

@@ -19,5 +19,6 @@ obj/fft.a: fft/obj/DFT.o fft/obj/wrap.o
 
 backend: $(OBJS) obj/fft.a
 	g++ -g -lm -pthread $^ -o $@
+	sudo cp $@ /var/www
 
 .DEFAULT_GOAL=backend

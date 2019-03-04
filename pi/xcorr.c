@@ -42,7 +42,6 @@ static void xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res)
 #define MAX(a, b) ((a > b) ? a : b)
 #define MIN(a, b) ((a < b) ? a : b)
 
-
 static void xcorr_norm(int *a)
 {
     int ind;
@@ -179,8 +178,8 @@ static void *xcorr_manager_main(void *arg)
     job->ncalib = 1;
 
     // When this is working fully, we don't need to mkfifo!
-    mkfifo("/tmp/chinchilla-serial", 0666);
-    f = fopen("/tmp/chinchilla-serial", "r");
+//    mkfifo("/tmp/chinchilla-serial", 0666);
+    f = fopen(CONF_INPUT, "r");
 
     for (njob = 0; njob < NUM_XCORR; ++njob)
         xcorr_job_init(
