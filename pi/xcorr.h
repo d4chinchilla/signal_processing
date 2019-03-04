@@ -4,7 +4,7 @@
 # include "sample.h"
 # include "conf.h"
 
-#define PEAK_X_THRESHOLD 10
+#define PEAK_X_THRESHOLD 20
 #define PEAK_Y_THRESHOLD 0
 
 typedef struct xcorr_job     xcorr_job_s;

@@ -8,6 +8,15 @@
 #include <sys/stat.h>
 #include <math.h>
 
+/* This is the file where our program spends most of its time *
+ * it is where all the management of threads takes place      */
+
+/* The threading model is simple, three child threads are launched  *
+ * by one manager thread, and associated with a pair of microphones *
+ * to crosscorrelate. Condition locks are used by all the threads   *
+ * to wait for their manager to signal a go, and then are used by   *
+ * the manager to wait for each thread to finish. The manager       *
+ * meanwhile does an FFT of the data.                               */
 static void  xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res);
 static void  xcorr_job_kill(xcorr_job_s *job);
 static void *xcorr_job_main(void *arg);
@@ -15,11 +24,13 @@ static void xcorr_job_wait(xcorr_job_s *job);
 
 static void *xcorr_manager_main(void *arg);
 
+/* Wait for a job to finish */
 static void xcorr_job_wait(xcorr_job_s *job)
 {
     pthread_cond_wait(&(job->done), &(job->done_mtx));
 }
 
+/* Initialize a job */
 static void xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res)
 {
     job->a   = a;
@@ -27,11 +38,15 @@ static void xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res)
     job->res = res;
     job->running = 1;
 
+    /* Start the pair of condition locks */
     pthread_mutex_init(&(job->launch_mtx), NULL);
     pthread_cond_init(&(job->launch), NULL);
     pthread_mutex_init(&(job->done_mtx), NULL);
     pthread_cond_init(&(job->done), NULL);
 
+    /* Lock the done mutex before setting the thread, that way *
+     * we can wait for it to send a done condition when it is  *
+     * initialized.                                            */
     pthread_mutex_lock(&(job->done_mtx));
 
     pthread_create(&(job->thread), NULL, xcorr_job_main, job);
@@ -42,6 +57,7 @@ static void xcorr_job_init(xcorr_job_s *job, int *a, int *b, int *res)
 #define MAX(a, b) ((a > b) ? a : b)
 #define MIN(a, b) ((a < b) ? a : b)
 
+/* Normalize a sample to be zero average */
 static void xcorr_norm(int *a)
 {
     int ind;
@@ -60,10 +76,13 @@ static void xcorr_norm(int *a)
     }
 }
 
+/* Do a cross-correlation */
 static void xcorr(int *a, int *b, int *res)
 {
     int offset, offind, ind;
 
+    /* To keep the cross correlation flat, we do each offset with the *
+     * same number of samples.                                        */
     for (offind = 0; offind < XCORR_LEN; ++offind)
     {
         int sum;
@@ -78,6 +97,7 @@ static void xcorr(int *a, int *b, int *res)
     }
 }
 
+/* Launch a job */
 static void xcorr_job_launch(xcorr_job_s *job)
 {
     pthread_mutex_lock(&(job->launch_mtx));
@@ -85,9 +105,11 @@ static void xcorr_job_launch(xcorr_job_s *job)
     pthread_mutex_unlock(&(job->launch_mtx));
 }
 
+/* Kill a job */
 static void xcorr_job_kill(xcorr_job_s *job)
 {
     job->running = 0;
+    /* It must be launched first, so that it isn't blocked on its condition */
     xcorr_job_launch(job);
     pthread_join(job->thread, NULL);
 }
@@ -97,20 +119,28 @@ static void *xcorr_job_main(void *arg)
     xcorr_job_s *job;
     job = arg;
 
+    /* Start by locking the launch mutex */
     pthread_mutex_lock(&(job->launch_mtx));
+
+    /* Signal we are initialized. We must do this after locking launch, *
+     * to avoid race conditions!                                        */
     pthread_mutex_lock(&(job->done_mtx));
     pthread_cond_signal(&(job->done));
     pthread_mutex_unlock(&(job->done_mtx));
 
     while (job->running)
     {
+        /* Wait to be launched */
         pthread_cond_wait(&(job->launch), &(job->launch_mtx));
 
+        /* If we're no longer alive, die */
         if (!job->running)
             break;
 
+        /* Do our job */
         xcorr(job->a, job->b, job->res);
 
+        /* Signal that we are done now! */
         pthread_mutex_lock(&(job->done_mtx));
         pthread_cond_signal(&(job->done));
         pthread_mutex_unlock(&(job->done_mtx));
@@ -119,6 +149,7 @@ static void *xcorr_job_main(void *arg)
     return NULL;
 }
 
+/* Initialize the manager thread */
 void xcorr_manager_init(xcorr_manager_s *job)
 {
     job->running = 1;
@@ -127,6 +158,7 @@ void xcorr_manager_init(xcorr_manager_s *job)
     pthread_create(&(job->thread), NULL, xcorr_manager_main, job);
 }
 
+/* Kill the manager thread */
 void xcorr_manager_kill(xcorr_manager_s *job)
 {
     job->running = 0;
@@ -134,11 +166,11 @@ void xcorr_manager_kill(xcorr_manager_s *job)
     pthread_join(job->thread, NULL);
 }
 
+/* Calculate an fft and send it to file */
 void dft_to_file(int *in)
 {
     int i;
     FILE *stream;
-
 
     double reals[DFT_OUT_LEN];
     double imags[DFT_OUT_LEN];
@@ -161,6 +193,7 @@ void dft_to_file(int *in)
     fclose(stream);
 }
 
+/* The main thread for the manager thread */
 static void *xcorr_manager_main(void *arg)
 {
     packet_s *pkt;
@@ -172,16 +205,20 @@ static void *xcorr_manager_main(void *arg)
     job     = arg;
     workers = job->workers;
     pkt     = job->packet;
+
+    /* This is set when the last xcorr was part of a calibration */
     job->calibratingstarted = 0;
+    /* This is set by the main thread */
     job->calibrating        = 0;
 
     memset(job->calib, 0, sizeof(job->calib));
     job->ncalib = 1;
 
     // When this is working fully, we don't need to mkfifo!
-//    mkfifo("/tmp/chinchilla-serial", 0666);
-    f = fopen(CONF_INPUT, "r");
+    //mkfifo("/tmp/chinchilla-serial", 0666);
+    f = fopen(, "r");
 
+    /* Initialize the xcorrelation workers */
     for (njob = 0; njob < NUM_XCORR; ++njob)
         xcorr_job_init(
             &(workers[njob]),
@@ -248,6 +285,7 @@ static void *xcorr_manager_main(void *arg)
                         job->calib[xc][ind] /= job->ncalib;
                     }
                 }
+                printf("%d NCALIB\n", job->ncalib);
             }
             else
             {
@@ -266,6 +304,8 @@ static void *xcorr_manager_main(void *arg)
                 int ind;
                 for (ind = 0; ind < XCORR_LEN; ++ind)
                 {
+                    printf("%d %d %d %d\n", xc, ind, job->calib[xc][ind],
+pkt->xcorr[xc][ind]);
                     pkt->xcorr[xc][ind] -= job->calib[xc][ind];
                 }
             }

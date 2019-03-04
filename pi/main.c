@@ -53,6 +53,7 @@ void main(void)
         {
             int cint;
             cint = fgetc(ctlf);
+            printf("%d\n", cint);
             if (cint == -1)
             {
                 clearerr(ctlf);

@@ -3,9 +3,10 @@
 import sys
 from math import *
 
+a = int(sys.argv[1]) / 360.0 * pi * 2
 sources = {
-    (3, 3): lambda t: sin(t*2*pi*500) ,
-#    (0,  0): lambda t: sin(t*2*pi*1000) * 0.0003
+    (cos(a)*sqrt(18), sin(a)*sqrt(18)): lambda t: sin(t*2*pi*800) ,
+#    (0,  0): lambda t: sin(t*2*pi*60) * 0.007
 }
 
 miclocs = [(0.1, 0.1), (-0.1, 0.1), (0.1, -0.1), (-0.1, -0.1)]
@@ -54,4 +55,5 @@ for v in get_all_vals():
     v = min(max(int(v), 0x00), 0xfe)
     packet += chr(v)
 
+open(sys.argv[1] + "deg.pkt", "w").write(packet)
 open("test.pkt", "w").write(packet)
