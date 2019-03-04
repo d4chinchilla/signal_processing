@@ -55,6 +55,7 @@ void main(void)
             cint = fgetc(ctlf);
             if (cint == -1)
             {
+                clearerr(ctlf);
                 usleep(100000);
                 break;
             }

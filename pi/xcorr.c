@@ -213,6 +213,7 @@ static void *xcorr_manager_main(void *arg)
         {
             puts("Starting calibration");
             job->calibratingstarted = 1;
+            job->ncalib             = 0;
             memset(job->calib, 0, sizeof(job->calib));
             // This the ongoing case is run
         }
