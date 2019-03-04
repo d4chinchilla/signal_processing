@@ -6,6 +6,7 @@
 #include <sys/select.h>
 #include "sound.h"
 
+/* Get the current time since the epoch */
 static uint64_t get_time_ms()
 {
     uint64_t rtn;
@@ -19,6 +20,7 @@ static uint64_t get_time_ms()
     return rtn;
 }
 
+/* Dump the JSON representing a sound to a file */
 void sound_print(sound_s *sound, FILE *stream)
 {
     static int id = 1;
@@ -42,7 +44,7 @@ void sound_print(sound_s *sound, FILE *stream)
     fwrite(buf, 1, ptr - buf, stream);
 }
 
-
+/* Truncate a long file down to size when it gets too long */
 FILE *sound_trim_file(const char *fname)
 {
     FILE *filein;
@@ -54,21 +56,30 @@ FILE *sound_trim_file(const char *fname)
     struct stat status;
     char *end, *iter;
 
+    /* If the file doesn't exist, return null */
     if (access(fname, F_OK))
         return NULL;
 
+    /* If stat doesn't run, return null */
     if (stat(fname, &status))
         return NULL;
 
+    /* If the file isn't long enough to truncate, return null */
     if (status.st_size <= maxsize)
-
         return NULL;
 
+    /* Get the file to truncate and seek to the earliest byte *
+     * that might be preserved.                               */
     filein = fopen(fname, "r");
     fseek(filein, status.st_size - trimsize -1, SEEK_SET);
+    /* Read the remainder of the file to a buffer */
     fread(file, 1, trimsize, filein);
     fclose(filein);
 
+    /* Iterate along the buffer until the first newline  *
+     * (we need to truncate along newlines, which is why *
+     * we write back the final 1024 bytes, at the first  *
+     * newline.                                          */
     iter = &file[0];
     end  = &file[trimsize - 1];
     while (iter < end)
@@ -84,6 +95,7 @@ FILE *sound_trim_file(const char *fname)
     return NULL;
 }
 
+/* Open the file where we write sounds */
 FILE *sound_get_file(void)
 {
     FILE *rtn;
@@ -95,14 +107,18 @@ FILE *sound_get_file(void)
     return rtn;
 }
 
+/* Verify whether a sound could exist. This is used to *
+ * ignore sounds which aren't legitimate.              */
 bool sound_verify(sound_s *sound)
 {
     double speed = get_sound_speed(sound);
     double error = get_sound_error(sound);
 
-    return (error < 0.2e-3) && (speed > 300.0) && (speed < 400.0);
+    return (error < 0.2e-3) && (speed > 300.0) && (speed < 450.0);
 }
 
+/* Initialize a sound from a set of delta times between microphones *
+ * if the sound is verified, true is returned. Otherwise, false.    */
 bool sound_init(sound_s *sound, double dt0, double dt1, double dt2, int v)
 {
     sound->dt[0] = dt0;
