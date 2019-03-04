@@ -139,12 +139,13 @@ void dft_to_file(int *in)
     int i;
     FILE *stream;
 
-    stream = fopen(CONF_FFT, "w");
 
     double reals[DFT_OUT_LEN];
     double imags[DFT_OUT_LEN];
 
     dft_wrap(in, reals, imags);
+
+    stream = fopen(CONF_FFT, "w");
     fprintf(stream, "{\"fft\": {\n");
 
     for (i = 0; i < DFT_OUT_LEN; ++i)
