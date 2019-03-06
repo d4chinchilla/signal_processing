@@ -88,11 +88,11 @@ int main()
 	//cout for display data and checking
 	for (int i = 0; i < sample; i++)
 	{
-		if (dft_str_1_im[i] <= 0)
+		if (dft_str_1_im[i] < 0)
 		{
 			cout << setprecision(6) << "dft_str " << i << " is: " << dft_str_1_re[i] << dft_str_1_im[i] << "i" << endl;
 		}
-		else
+		else 
 		{
 			cout << setprecision(6) << "dft_str " << i << " is: " << dft_str_1_re[i] << "+" << dft_str_1_im[i] << "i" << endl;
 		}
