@@ -87,8 +87,8 @@ vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq
 	{
 		for (int i = 0; i < vec_size; i++)
 		{
-			i_dft_temp[j] += re_freq[i] * cos( (2 * PI*i*j) / vec_size);
-			i_dft_temp[j] += -im_freq[i] * sin( (2 * PI*i*j) / vec_size);
+			i_dft_temp[j] += re_freq_temp[i] * cos( (2 * PI*i*j) / vec_size);
+			i_dft_temp[j] += -im_freq_temp[i] * sin( (2 * PI*i*j) / vec_size);
 		}
 
 		i_dft_temp[j] /= vec_size;
