@@ -1,7 +1,9 @@
 // Simple command line program to test the bit-shifting logic of the buffer
 // code. Data on the ADC inputs is simulated using the a0-a3 arrays. Prints
 // outputted char at the same time as it would send over serial.
-
+// Structure is generally very similar to MCU code to be more comparable. More
+// information on code function can be found in comments of arm_main.cpp.
+// Written by Matthew Johns (mrj1g17@soton.ac.uk)
 #include <iostream>
 using namespace std;
 
@@ -63,7 +65,6 @@ int main()
     for(uint8_t i = 0; i < NUM_MICS; i++)
     {
         // cout << "top: " << top << endl;
-
         samples_buffer[top] = current_sample[i];
         top++;
     }
