@@ -9,11 +9,13 @@ int main()
 {
 	int sample;
 
+	//test data
 	vector<double> mic_1 = { 47, 115, 87, 128, 38, 210, 35, 127, 63, 165, 61, 255, 245, 144, 23, 80, 50, 17, 143, 156, 198, 39, 107, 82, 223, 105, 94, 199, 84, 226 };
 	vector<double> mic_2 = { 115, 87, 128, 38, 210, 35, 127, 63, 165, 61, 255, 245, 144, 23, 80, 50, 17, 143, 156, 198, 39, 107, 82, 223, 105, 94, 199, 84, 226, 132 };
 	vector<double> mic_3 = { 47, 115, 87, 128, 38, 210, 35, 127, 63, 165, 61, 255, 245, 144, 23, 80, 50, 17, 143, 156, 198, 39, 107, 82, 223, 105, 94, 199, 84, 226 };
 	vector<double> mic_4 = { 63, 165, 61, 255, 245, 144, 23, 80, 50, 17, 143, 156, 198, 39, 107, 82, 223, 105, 94, 199, 84, 226, 27, 55, 106, 111, 210, 92, 179, 243 };
 
+	//init vector
 	vector<double> dec_str_1;
 	vector<double> dec_str_2;
 
@@ -28,8 +30,10 @@ int main()
 	vector<double> x_corr_f;
 	vector<double> x_corr_s;
 
+	//init delay
 	int delay;
 
+	//select the data to compute
 	int mic_no1, mic_no2;
 
 	mic_no1 = select_mic();
@@ -60,8 +64,12 @@ int main()
 		break;
 	}
 
-	x_corr_s = x_corr(dec_str_1, dec_str_2);
 
+	//not in used (cross_correlation using convolution)
+	//x_corr_s = x_corr(dec_str_1, dec_str_2);
+
+
+	//compute DFT
 	dft_str_1_re = c_dft_re(dec_str_1);
 	dft_str_1_im = c_dft_im(dec_str_1);
 
@@ -77,6 +85,7 @@ int main()
 		sample = dft_str_1_im.size();
 	}
 
+	//cout for display data and checking
 	for (int i = 0; i < sample; i++)
 	{
 		if (dft_str_1_im[i] <= 0)
@@ -91,14 +100,17 @@ int main()
 
 	cout << endl;
 
+	//inverse DFT
 	idft_str_1 = i_dft(dft_str_1_re, dft_str_1_im);
 	idft_str_2 = i_dft(dft_str_2_re, dft_str_2_im);
 
+	//cross_correlation (using DFT)
 	x_corr_f = x_corr_dft(dec_str_1, dec_str_2);
-	//number of element+1 shows delay, take absolute value, if -ve means 1st set of data lag 'n' elements of 2nd data, if +ve means 1st set of data lead 'n' elements of 2nd data
-	//elements all 0 ==> delay = 0;
+
+	//calculate the power of signal in dB
 	cal_amplitude(dec_str_1);
 
+	//find delay of 2 data
 	delay = delay_dft_func(x_corr_f, dec_str_1, dec_str_2);
 
 	system("pause");

@@ -3,15 +3,16 @@
 using namespace std;
 constexpr double PI = 3.14159265358979323846;
 
-vector<double> c_dft_re(const vector<double> &dec_in) //compute DTF real part, passing address
+vector<double> c_dft_re(const vector<double> &dec_in) //compute Discrete Fourier Transform, real part only, by using the vector that have been passed
 {
-	vector<double> re_freq_temp;
+	vector<double> re_freq_temp; //temp vector
 
 	for (int i = 0; i < dec_in.size(); i++)
 	{
-		re_freq_temp.push_back(0);
+		re_freq_temp.push_back(0); //allocate memory
 	}
 
+	//compute Discrete Fourier Transform
 	for (int i = 0; i < dec_in.size(); i++)
 	{
 		for (int j = 0; j < dec_in.size(); j++)
@@ -19,23 +20,24 @@ vector<double> c_dft_re(const vector<double> &dec_in) //compute DTF real part, p
 			re_freq_temp[i] += dec_in[j] * cos( (2 * PI*i*j) / dec_in.size());
 		}
 
-		cout << setprecision(6) << "re_freq_temp " << i << "is: " << re_freq_temp[i] << endl;
+		cout << setprecision(6) << "re_freq_temp " << i << "is: " << re_freq_temp[i] << endl; //cout for display data and checking
 	}
 
 	cout << endl;
 
-	return re_freq_temp;
+	return re_freq_temp; //return DFT_re
 }
 
-vector<double> c_dft_im(const vector<double> &dec_in) //compute DTF imaginary part, passing address
+vector<double> c_dft_im(const vector<double> &dec_in) //compute Discrete Fourier Transform, imaginary part only, by using the vector that have been passed
 {
-	vector<double> im_freq_temp;
+	vector<double> im_freq_temp; //temp vector
 
 	for (int i = 0; i < dec_in.size(); i++)
 	{
-		im_freq_temp.push_back(0);
+		im_freq_temp.push_back(0); //allocate memory
 	}
 
+	//compute Discrete Fourier Transform
 	for (int i = 0; i < dec_in.size(); i++)
 	{
 		for (int j = 0; j < dec_in.size(); j++)
@@ -43,20 +45,20 @@ vector<double> c_dft_im(const vector<double> &dec_in) //compute DTF imaginary pa
 			im_freq_temp[i] += -dec_in[j] * sin( (2 * PI*i*j) / dec_in.size());
 		}
 
-		cout << setprecision(6) << "im_freq_temp " << i << "is: " << im_freq_temp[i] << "j" << endl;
+		cout << setprecision(6) << "im_freq_temp " << i << "is: " << im_freq_temp[i] << "j" << endl; //cout for display data and checking
 	}
 
 	cout << endl;
 
-	return im_freq_temp;
+	return im_freq_temp; //return DFT_im
 }
 
-vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq) //compute invert DTF, passing address
+vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq) //compute inverse Discrete Fourier Transform, by using the vector of DFT_re & DFT_im that have been passed
 {
 	
 	int vec_size;
 
-	//get how many sample contain
+	//store the biggest size of vector
 	if (re_freq.size() >= im_freq.size())
 	{
 		vec_size = re_freq.size();
@@ -66,7 +68,7 @@ vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq
 		vec_size = im_freq.size();
 	}
 
-	//ensure the original data do not change
+	//temp vector
 	vector<double> re_freq_temp;
 	vector<double> im_freq_temp;
 	vector<double> i_dft_temp;
@@ -74,11 +76,13 @@ vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq
 	re_freq_temp = re_freq;
 	im_freq_temp = im_freq;
 
+	//allocate memory
 	for (int i = 0; i < vec_size; i++)
 	{
 		i_dft_temp.push_back(0);
 	}
 	
+	//compute inverse Discrete Fourier Transform
 	for (int j = 0; j < vec_size; j++)
 	{
 		for (int i = 0; i < vec_size; i++)
@@ -89,9 +93,9 @@ vector<double> i_dft(const vector<double> &re_freq,const vector<double> &im_freq
 
 		i_dft_temp[j] /= vec_size;
 		
-		cout << setprecision(6) << "i_dft_temp " << j << " is: " << i_dft_temp[j] << endl;
+		cout << setprecision(6) << "i_dft_temp " << j << " is: " << i_dft_temp[j] << endl; //cout for display data and checking
 	}
 	cout << endl;
 
-	return i_dft_temp; //copy result to global variable
+	return i_dft_temp; //return the result of inverse DFT
 }
