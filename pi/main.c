@@ -5,30 +5,35 @@
 #include "xcorr.h"
 #include "errno.h"
 #include "string.h"
+#include "conf.h"
 
+/* Make and return a stream pointed to the backend control file */
 FILE *ctl_file(void)
 {
     FILE *f;
 
-    if (mkfifo("/tmp/chinchilla-backend-ctl", 0666) == -1)
+    if (mkfifo(CONF_CTL, 0666) == -1)
     {
         if (errno != EEXIST)
             printf("Error, cannot make backend-ctl fifo: %s\n", strerror(errno));
     }
 
-    f = fopen("/tmp/chinchilla-backend-ctl", "r");
+    f = fopen(CONF_CTL, "r");
 
     return f;
 }
 
+/* Cleanup temporary files and fifos once I close */
 void clean_files(void)
 {
     FILE *f;
-    unlink("/tmp/chinchilla-backend-ctl");
-    f = fopen("/tmp/chinchilla-sounds", "w");
-    fwrite("", 1, 0, f);
 
-//    fopen("/tmp/chinchill
+    /* Delete the control file */
+    unlink(CONF_CTL);
+
+    /* Just empty the CONF_SOUND file */
+    f = fopen(CONF_SOUND, "w");
+    fwrite("", 1, 0, f);
 }
 
 void main(void)
@@ -36,11 +41,13 @@ void main(void)
     int running;
     FILE *ctlf;
     xcorr_manager_s manager;
+    /* Make child threads */
     xcorr_manager_init(&manager);
 
-//    system("stty -F " CONF_INPUT " 406:0:18b4:8a30:3:1c:7f:15:4:2:64:0:11:13:1a:0:12:f:17:16:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0");
     running = 1;
+    /* Open a control file input */
     ctlf    = ctl_file();
+
     while (running)
     {
         char line[16];
@@ -49,13 +56,15 @@ void main(void)
         end = &line[sizeof(line) - 1];
         memset(line, 0, sizeof(line));
 
+        /* Read a line from the control file */
         while (chr < end)
         {
             int cint;
             cint = fgetc(ctlf);
-            printf("%d\n", cint);
+
             if (cint == -1)
             {
+                /* Clear any errors so we don't get stuck re-reading */
                 clearerr(ctlf);
                 usleep(100000);
                 break;
@@ -64,9 +73,11 @@ void main(void)
             *(chr++) = (unsigned char)cint;
         }
 
+        /* If there is a stop command, stop running */
         if (memcmp("stop", line, 4) == 0)
             running = 0;
 
+        /* Run a calibration routine if needed */
         if (memcmp("calibrate", line, 4) == 0)
         {
             manager.calibrating = 1;
@@ -79,6 +90,9 @@ void main(void)
     }
     fclose(ctlf);
 
+    /* Kill our child thread(s) */
     xcorr_manager_kill(&manager);
+    
+    /* Cleanup */
     clean_files();
 }
