@@ -216,7 +216,7 @@ static void *xcorr_manager_main(void *arg)
 
     // When this is working fully, we don't need to mkfifo!
     //mkfifo("/tmp/chinchilla-serial", 0666);
-    f = fopen(, "r");
+    f = fopen(CONF_INPUT, "r");
 
     /* Initialize the xcorrelation workers */
     for (njob = 0; njob < NUM_XCORR; ++njob)
